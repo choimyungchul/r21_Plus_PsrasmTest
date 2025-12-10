@@ -1,0 +1,5 @@
+<directory>
+ <chips chipVendor='NXP' >
+  <chip name='MIMXRT798S' xml_file='MIMXRT798S_part.xml' />
+ </chips>
+</directory> 

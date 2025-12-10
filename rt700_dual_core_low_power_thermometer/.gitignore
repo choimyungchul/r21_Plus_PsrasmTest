@@ -1,0 +1,10 @@
+armgcc/out/
+armgcc/debug/
+armgcc/release/
+armgcc/CMakeFiles
+armgcc/CMakeCache.txt
+armgcc/cmake_install.cmake
+armgcc/build.ninja
+armgcc/output.map
+armgcc/.ninja_*
+armgcc/build_log.txt

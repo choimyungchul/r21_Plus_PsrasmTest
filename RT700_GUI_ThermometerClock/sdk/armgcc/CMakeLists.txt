@@ -1,0 +1,116 @@
+# CROSS COMPILER SETTING
+set(CMAKE_SYSTEM_NAME Generic)
+cmake_minimum_required(VERSION 3.10.0)
+
+# THE VERSION NUMBER
+SET (MCUXPRESSO_CMAKE_FORMAT_MAJOR_VERSION 2)
+SET (MCUXPRESSO_CMAKE_FORMAT_MINOR_VERSION 0)
+
+include(ide_overrides.cmake OPTIONAL)
+
+if(CMAKE_SCRIPT_MODE_FILE)
+message("${MCUXPRESSO_CMAKE_FORMAT_MAJOR_VERSION}")
+return()
+endif()
+
+
+set(CMAKE_STATIC_LIBRARY_PREFIX)
+set(CMAKE_STATIC_LIBRARY_SUFFIX)
+
+set(CMAKE_EXECUTABLE_LIBRARY_PREFIX)
+set(CMAKE_EXECUTABLE_LIBRARY_SUFFIX)
+
+# CURRENT DIRECTORY
+set(ProjDirPath ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(EXECUTABLE_OUTPUT_PATH ${ProjDirPath}/build)
+set(LIBRARY_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
+
+
+project(lvgl_guider)
+
+enable_language(ASM)
+
+set(MCUX_BUILD_TYPES debug flash_debug release flash_release)
+
+set(MCUX_SDK_PROJECT_NAME lvgl_guider.elf)
+
+if (NOT DEFINED SdkRootDirPath)
+SET(SdkRootDirPath ${ProjDirPath}/)
+endif()
+
+include(${ProjDirPath}/flags.cmake)
+
+include(${ProjDirPath}/config.cmake)
+
+file(GLOB SOURCES
+${ProjDirPath}/../../custom/*.c
+${ProjDirPath}/../../custom/*.h
+${ProjDirPath}/../../generated/*.c
+${ProjDirPath}/../../generated/*.h
+${ProjDirPath}/../../generated/images/*.c
+${ProjDirPath}/../../generated/images/*.h
+${ProjDirPath}/../../generated/guider_fonts/*.c
+${ProjDirPath}/../../generated/guider_fonts/*.h
+${ProjDirPath}/../../generated/guider_customer_fonts/*.c
+${ProjDirPath}/../../generated/guider_customer_fonts/*.h
+)
+
+add_executable(${MCUX_SDK_PROJECT_NAME}
+"${ProjDirPath}/../Core/board/board.c"
+"${ProjDirPath}/../Core/board/board.h"
+"${ProjDirPath}/../Core/board/clock_config.c"
+"${ProjDirPath}/../Core/board/clock_config.h"
+"${ProjDirPath}/../Core/source/FreeRTOSConfig_Gen.h"
+"${ProjDirPath}/../Core/source/app.h"
+"${ProjDirPath}/../Core/source/display_support.c"
+"${ProjDirPath}/../Core/source/display_support.h"
+"${ProjDirPath}/../Core/source/hardware_init.c"
+"${ProjDirPath}/../Core/source/lv_conf.h"
+"${ProjDirPath}/../Core/source/lvgl_demo_utils.c"
+"${ProjDirPath}/../Core/source/lvgl_demo_utils.h"
+"${ProjDirPath}/../Core/source/lvgl_freertos.c"
+"${ProjDirPath}/../Core/source/lvgl_freertos.h"
+"${ProjDirPath}/../Core/source/lvgl_guider.c"
+"${ProjDirPath}/../Core/source/lvgl_support.c"
+"${ProjDirPath}/../Core/source/lvgl_support.h"
+"${ProjDirPath}/../Core/source/pin_mux.c"
+"${ProjDirPath}/../Core/source/pin_mux.h"
+"${ProjDirPath}/../Core/source/vglite_support.c"
+"${ProjDirPath}/../Core/source/vglite_support.h"
+${SOURCES}
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
+${ProjDirPath}/../Core/source
+${ProjDirPath}/../Core/board
+${ProjDirPath}/../../generated
+${ProjDirPath}/../../custom
+${ProjDirPath}/../../generated/guider_customer_fonts
+${ProjDirPath}/../../generated/guider_fonts
+)
+
+set_source_files_properties("${ProjDirPath}/../Core/source/lv_conf.h" PROPERTIES COMPONENT_CONFIG_FILE "middleware_lvgl_template")
+set_source_files_properties("${ProjDirPath}/../Core/source/lvgl_support.c" PROPERTIES COMPONENT_CONFIG_FILE "middleware_lvgl_template")
+set_source_files_properties("${ProjDirPath}/../Core/source/FreeRTOSConfig_Gen.h" PROPERTIES COMPONENT_CONFIG_FILE "middleware_freertos-kernel_config")
+
+include(${ProjDirPath}/all_lib_device.cmake)
+
+IF(NOT DEFINED TARGET_LINK_SYSTEM_LIBRARIES)
+SET(TARGET_LINK_SYSTEM_LIBRARIES "-lm -lc -lgcc -lnosys")
+ENDIF()
+
+TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
+
+target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE ${TARGET_LINK_SYSTEM_LIBRARIES})
+
+TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--end-group)
+
+ADD_CUSTOM_COMMAND(TARGET ${MCUX_SDK_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_OBJCOPY}
+-Obinary ${EXECUTABLE_OUTPUT_PATH}/${MCUX_SDK_PROJECT_NAME} ${EXECUTABLE_OUTPUT_PATH}/lvgl_guider.bin)
+
+set_target_properties(${MCUX_SDK_PROJECT_NAME} PROPERTIES ADDITIONAL_CLEAN_FILES "output.map;${EXECUTABLE_OUTPUT_PATH}/lvgl_guider.bin")
+
+# wrap all libraries with -Wl,--start-group -Wl,--end-group to prevent link order issue
+group_link_libraries()
+

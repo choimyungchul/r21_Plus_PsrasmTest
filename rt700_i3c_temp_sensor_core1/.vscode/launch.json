@@ -1,0 +1,35 @@
+{
+  "configurations": [
+    {
+      "type": "mcuxpresso-debug",
+      "name": "Debug",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+    
+      "executable": "",
+      "stopAtSymbol": "main",
+      "probeSerialNumber": "DOTKMR2C4NVEF",
+      "isAttach": false,
+      "probeType": "",
+      "skipBuildBeforeDebug": false,
+      "skipPreFlashActions": true,
+    
+      "gdbInitCommands": [
+        "set remotetimeout 600",
+        "set debug-file-directory",
+        "set non-stop off"
+      ],
+    
+      "gdbServerConfigs": {
+        "linkserver": {
+          "device": "MIMXRT798S:MIMXRT700-EVK",
+          "core": "cm33_core1"
+        },
+    		"segger": {},
+    		"pemicro": {}
+      },
+    
+      "showDevDebugOutput": "none"
+    }
+  ]
+}
