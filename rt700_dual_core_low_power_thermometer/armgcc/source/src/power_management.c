@@ -287,7 +287,10 @@ void BOARD_DisableUnusedClocks(void)
     CLOCK_DisableClock(kCLOCK_Acmp0);
     CLOCK_DisableClock(kCLOCK_Pdm);
     CLOCK_DisableClock(kCLOCK_Glikey4);
+    
+#if (DEMO_POWER_ENABLE_DEBUG == 0U)
     CLOCK_DisableClock(kCLOCK_Dbg);
+#endif
     // CLOCK_DisableClock(kCLOCK_Syscon3);
     CLOCK_DisableClock(kCLOCK_Iopctl1);
     CLOCK_DisableClock(kCLOCK_Glikey1);

@@ -3,10 +3,11 @@
   "configurations": [
     {
       "name": "IntelliSense Configuration",
-      "compileCommands": [
-        "${workspaceFolder}/armgcc/debug/compile_commands.json"
-      ],
-      "intelliSenseMode": "gcc-arm"
+      "compileCommands": [],
+      "intelliSenseMode": "gcc-arm",
+      "browse": {
+        "limitSymbolsToIncludedHeaders": true
+      }
     }
   ]
 }

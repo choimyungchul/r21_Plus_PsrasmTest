@@ -6,13 +6,12 @@
       "request": "launch",
       "cwd": "${workspaceFolder}",
     
-      "executable": "",
+      "executable": "${workspaceFolder}/armgcc/sram_debug/lvgl_guider_cm33_core0.elf",
       "stopAtSymbol": "main",
-      "probeSerialNumber": "DOTKMR2C4NVEF",
+      "probeSerialNumber": "261005251",
       "isAttach": false,
       "probeType": "",
       "skipBuildBeforeDebug": false,
-      "skipPreFlashActions": true,
     
       "gdbInitCommands": [
         "set remotetimeout 600",
@@ -25,7 +24,9 @@
           "device": "MIMXRT798S:MIMXRT700-EVK",
           "core": "cm33_core0"
         },
-    		"segger": {},
+        "segger": {
+          "device": "MIMXRT798S_M33_0"
+        },
     		"pemicro": {}
       },
     

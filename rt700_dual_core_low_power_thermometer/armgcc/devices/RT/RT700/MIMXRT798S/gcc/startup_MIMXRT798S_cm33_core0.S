@@ -240,6 +240,7 @@ Reset_Handler:
  *      __noncachedata_start__/__noncachedata_end__ : none cachable region
  *      copied to. Both must be aligned to 4 bytes boundary.  */
 
+#ifndef __STARTUP_SKIP_DATA_COPY
     ldr    r1, =__etext
     ldr    r2, =__data_start__
     ldr    r3, =__data_end__
@@ -264,8 +265,10 @@ Reset_Handler:
     bgt    .LC0
 .LC1:
 #endif
+#endif /* __STARTUP_SKIP_DATA_COPY */
 
 #ifdef __STARTUP_INITIALIZE_NONCACHEDATA
+#ifndef __STARTUP_SKIP_DATA_COPY
     ldr    r2, =__noncachedata_start__
     ldr    r3, =__noncachedata_init_end__
 #ifdef __PERFORMANCE_IMPLEMENTATION
@@ -288,6 +291,9 @@ Reset_Handler:
     strlt   r0, [r2], #4
     blt    .LC5
 #endif
+#else
+    ldr    r2, =__noncachedata_init_end__
+#endif /* __STARTUP_SKIP_DATA_COPY */
 /* zero inited ncache section initialization */
     ldr r3, =__noncachedata_end__
     movs    r0,0

@@ -1,14 +1,9 @@
 {
-  "version": "24.9",
+  "version": "25.3",
   "toolchainPath": "C:/NXP/MCUXpressoIDE_24.12.100_ear/ide/tools",
   "linkedProjects": [],
   "trustZoneType": "none",
   "multicoreType": "none",
-  "debug": {
-    "linkserver": {},
-    "pemicro": {},
-    "segger": {}
-  },
   "projectType": "sdk-freestanding",
   "sdk": {
     "boardId": "mimxrt700evk",

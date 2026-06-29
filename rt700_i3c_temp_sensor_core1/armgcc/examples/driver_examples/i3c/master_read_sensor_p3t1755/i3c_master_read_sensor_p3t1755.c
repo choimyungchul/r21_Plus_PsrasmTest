@@ -243,10 +243,15 @@ int main(void)
 
     MU_EnableInterrupts(APP_MU, (kMU_Rx0FullInterruptEnable));
     EnableDeepSleepIRQ(MU1_B_IRQn);
-
+    
+    temperature = 10;
     while (1)
     {
+        temperature += 0.1;
+        if(temperature > 99 ) temperature = 10;
+
         BOARD_EnterDeepSleep(APP_EXCLUDE_FROM_DEEPSLEEP);
+/*       
         result = P3T1755_ReadTemperature(&p3t1755Handle, &temperature);
         if (result != kStatus_Success)
         {
@@ -256,6 +261,7 @@ int main(void)
         {
             DEMO_LOG("\r\nTemperature:%f \r\n", temperature);
         }
+*/        
         int32_t temperatureInt = temperature * 10000;
         MU_SendMsgNonBlocking(APP_MU, CHN_MU_REG_NUM, *(uint32_t*)&temperatureInt);
     }

@@ -116,17 +116,17 @@
 #define BOARD_MIPI_TOUCH_INT_GPIO_IRQ_Handler GPIO10_IRQHandler
 
 /* RST pin. */
-#define BOARD_MIPI_RST_GPIO GPIO3
-#define BOARD_MIPI_RST_PIN  4
+#define BOARD_MIPI_RST_GPIO GPIO4
+#define BOARD_MIPI_RST_PIN  12
 /* POWER pin .*/
-#define BOARD_MIPI_POWER_GPIO GPIO1
-#define BOARD_MIPI_POWER_PIN  10
+#define BOARD_MIPI_POWER_GPIO GPIO4
+#define BOARD_MIPI_POWER_PIN  13
 /* Backlight pin. */
 #define BOARD_MIPI_BL_GPIO GPIO1
 #define BOARD_MIPI_BL_PIN  14
 /* TE pin. */
-#define BOARD_MIPI_TE_GPIO             GPIO3
-#define BOARD_MIPI_TE_PIN              5
+#define BOARD_MIPI_TE_GPIO             GPIO4
+#define BOARD_MIPI_TE_PIN              11
 #define BOARD_MIPI_TE_GPIO_IRQn        GPIO30_IRQn
 #define BOARD_MIPI_TE_GPIO_IRQ_Handler GPIO30_IRQHandler
 

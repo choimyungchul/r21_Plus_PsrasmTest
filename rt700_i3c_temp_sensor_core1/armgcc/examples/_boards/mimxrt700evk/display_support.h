@@ -23,7 +23,7 @@
 /* @TEST_ANCHOR */
 /* Configure this macro in Kconfig or directly in the generated mcux_config.h. */
 #ifndef DEMO_PANEL
-#define DEMO_PANEL DEMO_PANEL_RK055MHD091
+#define DEMO_PANEL DEMO_PANEL_CO5300
 #endif
 
 #define DEMO_ALIGN_ADDR(addr, align) ((((addr) / (align) * (align)) == (addr)) ? (addr) : ((addr) / (align) * (align) + (align)))

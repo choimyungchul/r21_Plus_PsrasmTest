@@ -40,7 +40,7 @@ project(lvgl_guider_cm33_core0)
 
 enable_language(ASM)
 
-set(MCUX_BUILD_TYPES debug release)
+set(MCUX_BUILD_TYPES debug release sram_debug emmc_debug)
 
 set(MCUX_SDK_PROJECT_NAME lvgl_guider_cm33_core0.elf)
 
@@ -1026,6 +1026,7 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${ProjDirPath}/.
     ${SdkRootDirPath}
     ${SdkRootDirPath}/../../rt700_i3c_temp_sensor_core1/armgcc/${CMAKE_BUILD_TYPE}
+    ${SdkRootDirPath}/../../rt700_i3c_temp_sensor_core1/armgcc/debug
     ${SdkRootDirPath}/arch/arm/CMSIS/Core/Include
     ${SdkRootDirPath}/arch/arm/CMSIS/Core/Include/m-profile
     ${SdkRootDirPath}/components/assert
@@ -1121,8 +1122,10 @@ target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE ${TARGET_LINK_SYSTEM_LIBR
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--end-group)
 
+if(NOT CMAKE_BUILD_TYPE STREQUAL "sram_debug")
 ADD_CUSTOM_COMMAND(TARGET ${MCUX_SDK_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_OBJCOPY}
 -Obinary ${EXECUTABLE_OUTPUT_PATH}/${MCUX_SDK_PROJECT_NAME} ${EXECUTABLE_OUTPUT_PATH}/lvgl_guider_cm33_core0.bin)
+endif()
 
 set_target_properties(${MCUX_SDK_PROJECT_NAME} PROPERTIES ADDITIONAL_CLEAN_FILES "output.map;${EXECUTABLE_OUTPUT_PATH}/lvgl_guider_cm33_core0.bin")
 

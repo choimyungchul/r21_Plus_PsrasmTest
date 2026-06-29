@@ -23,26 +23,6 @@
         "CMAKE_BUILD_TYPE": "release"
       },
       "inherits": "release-env"
-    },
-    {
-      "name": "sram_debug",
-      "displayName": "sram_debug",
-      "generator": "Ninja",
-      "toolchainFile": "${sourceDir}/armgcc.cmake",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "sram_debug"
-      },
-      "inherits": "debug-env"
-    },
-    {
-      "name": "emmc_debug",
-      "displayName": "emmc_debug",
-      "generator": "Ninja",
-      "toolchainFile": "${sourceDir}/armgcc.cmake",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "emmc_debug"
-      },
-      "inherits": "debug-env"
     }
   ],
   "buildPresets": [
@@ -55,16 +35,6 @@
       "name": "release",
       "displayName": "release",
       "configurePreset": "release"
-    },
-    {
-      "name": "sram_debug",
-      "displayName": "sram_debug",
-      "configurePreset": "sram_debug"
-    },
-    {
-      "name": "emmc_debug",
-      "displayName": "emmc_debug",
-      "configurePreset": "emmc_debug"
     }
   ],
   "include": [

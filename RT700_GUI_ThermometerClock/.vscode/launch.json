@@ -5,32 +5,23 @@
       "name": "Debug",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-    
-      "executable": "",
+      "executable": {
+        "elf": ""
+      },
       "stopAtSymbol": "main",
-      "probeSerialNumber": "261005251",
+      "probeSerialNumber": "",
       "isAttach": false,
-      "probeType": "",
       "skipBuildBeforeDebug": false,
-      "skipPreFlashActions": true,
-    
       "gdbInitCommands": [
         "set remotetimeout 600",
         "set debug-file-directory",
         "set non-stop off"
       ],
-    
       "gdbServerConfigs": {
-        "linkserver": {
-          "device": "MIMXRT798S:MIMXRT700-EVK",
-          "core": "cm33_core1"
-        },
-        "segger": {
-          "device": "MIMXRT798S_M33_1"
-        },
-    		"pemicro": {}
+        "linkserver": {},
+        "segger": {},
+        "pemicro": {}
       },
-    
       "showDevDebugOutput": "none"
     }
   ]

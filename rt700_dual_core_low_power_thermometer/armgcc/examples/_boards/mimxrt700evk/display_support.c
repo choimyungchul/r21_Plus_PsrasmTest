@@ -1163,7 +1163,7 @@ static status_t BOARD_InitLcdPanel(void)
     GPIO_PinInit(BOARD_MIPI_POWER_GPIO, BOARD_MIPI_POWER_PIN, &pinConfig);
     GPIO_PinInit(BOARD_MIPI_RST_GPIO, BOARD_MIPI_RST_PIN, &pinConfig);
 
-    // BOARD_InitMipiPanelTEPin();
+    BOARD_InitMipiPanelTEPin();
 
     return kStatus_Success;
 }

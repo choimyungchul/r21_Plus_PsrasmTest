@@ -27,7 +27,7 @@
 #define DEMO_LOG(...)
 #endif
 
-#define DEMO_POWER_ENABLE_DEBUG 0U /* Enable debug or not, disable the debug function/clock can save power. */
+#define DEMO_POWER_ENABLE_DEBUG 1U /* Enable debug or not, disable the debug function/clock can save power. */
 
 /*!< Power down all unnecessary blocks and enable RBB during deep sleep. */
 #define APP_DEEPSLEEP_SLEEPCFG    (SLEEPCON1_SLEEPCFG_FRO2_PD_MASK | SLEEPCON1_SLEEPCFG_FRO2_GATE_MASK) /* SLEEPCON->SLEEPCFG */

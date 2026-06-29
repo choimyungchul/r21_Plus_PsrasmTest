@@ -23,7 +23,7 @@
 /* @TEST_ANCHOR */
 /* Configure this macro in Kconfig or directly in the generated mcux_config.h. */
 #ifndef DEMO_PANEL
-#define DEMO_PANEL DEMO_PANEL_RK055MHD091
+#define DEMO_PANEL DEMO_PANEL_CO5300
 #endif
 
 #define DEMO_ALIGN_ADDR(addr, align) ((((addr) / (align) * (align)) == (addr)) ? (addr) : ((addr) / (align) * (align) + (align)))
@@ -272,8 +272,10 @@
 /*
  * Place frame buffer in on-board PSRAM.
  */
-#define DEMO_BUFFER0_ADDR 0x60000000U
-#define DEMO_BUFFER1_ADDR 0x60200000U
+//#define DEMO_BUFFER0_ADDR 0x60000000U
+//#define DEMO_BUFFER1_ADDR 0x60200000U
+#define DEMO_BUFFER0_ADDR 0x20200000U
+#define DEMO_BUFFER1_ADDR 0x20280000U
 
 /* Definitions for the frame buffer. */
 /* 1 is enough, use 2 could render background buffer while display the foreground buffer. */

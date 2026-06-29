@@ -1,0 +1,5 @@
+ExitOnError 1
+r
+h
+loadfile F:\Project\oled\mimxrt700_evk_dual_core_low_power_thermometer_clock\rt700_dual_core_low_power_thermometer\armgcc\debug\lvgl_guider_cm33_core0.hex
+qc

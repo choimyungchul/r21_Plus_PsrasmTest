@@ -1,0 +1,14 @@
+# Build outputs
+**/build/
+**/debug/
+**/emmc_debug/
+**/sram_debug/
+**/CMakeFiles/
+**/CMakeCache.txt
+
+# Generated compile database
+**/compile_commands.json
+
+# Tool logs and temporary files
+*.log
+*.tmp
