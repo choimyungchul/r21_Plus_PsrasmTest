@@ -35,7 +35,7 @@
 #define TICKLESS_OSTIMER_IRQn     OS_EVENT_IRQn /*!< Tickless timer IRQ number. */
 
 #define APP_SLEEP_CONSTRAINTS                                                                                       \
-    27, \
+    28, \
     PM_RESC_COMP_MAINCLK_ON, \
     PM_RESC_SENSEP_MAINCLK_ON, \
     PM_RESC_SENSES_MAINCLK_ON, \
@@ -61,12 +61,13 @@
     PM_RESC_SRAM_CPU0_ICACHE_ACTIVE, \
     PM_RESC_SRAM_CPU0_DCACHE_ACTIVE, \
     PM_RESC_SRAM_XSPI0_ACTIVE, \
+    PM_RESC_SRAM_XSPI2_ACTIVE, \
     PM_RESC_SRAM_LCDIF_ACTIVE, \
     PM_RESC_SRAM_OCOTP_ACTIVE
 
 
 #define APP_DEEP_SLEEP_CONSTRAINTS  \
-    11,                             \
+    12,                             \
     PM_RESC_VNCOM_ON,               \
     PM_RESC_V2NMED_ON,              \
     PM_RESC_SRAM7_128KB_RETENTION,  \
@@ -77,7 +78,8 @@
     PM_RESC_SRAM15_512KB_RETENTION, \
     PM_RESC_SRAM16_256KB_RETENTION, \
     PM_RESC_SRAM_CPU0_ICACHE_RETENTION, \
-    PM_RESC_SRAM_CPU0_DCACHE_RETENTION
+    PM_RESC_SRAM_CPU0_DCACHE_RETENTION, \
+    PM_RESC_SRAM_XSPI2_RETENTION
 
 #if defined(__CC_ARM) || defined(__ARMCC_VERSION)
 extern uint32_t Image$$CORE1_REGION$$Base;

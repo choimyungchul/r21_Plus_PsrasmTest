@@ -10,10 +10,10 @@
       "hidden": true,
       "environment": {
         "ARMGCC_DIR": "C:/NXP/MCUXpressoIDE_25.6.136/ide/tools",
-        "MCUX_VENV_PATH": "C:/Users/VC/.mcuxpressotools/.venv_3_10/Scripts",
+        "MCUX_VENV_PATH": "C:/Users/user/.mcuxpressotools/.mcux-venv-3.12/Scripts",
         "PATH": "$env{MCUX_VENV_PATH}:$penv{PATH}",
         "SdkRootDirPath": "",
-        "POSTPROCESS_UTILITY": "C:/Users/VC/.mcuxpressotools/mcux-fixelf-14.2.2/mcux-fixelf.exe",
+        "POSTPROCESS_UTILITY": "C:/Users/user/.mcuxpressotools/mcux-fixelf-14.2.2/mcux-fixelf.exe",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
@@ -26,7 +26,7 @@
         "MCUX_VENV_PATH": "/home/julien/.mcuxpressotools/.venv/bin",
         "PATH": "$env{MCUX_VENV_PATH}:$penv{PATH}",
         "SdkRootDirPath": "",
-        "POSTPROCESS_UTILITY": "C:/Users/VC/.mcuxpressotools/mcux-fixelf-14.2.2/mcux-fixelf.exe",
+        "POSTPROCESS_UTILITY": "C:/Users/user/.mcuxpressotools/mcux-fixelf-14.2.2/mcux-fixelf.exe",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     }

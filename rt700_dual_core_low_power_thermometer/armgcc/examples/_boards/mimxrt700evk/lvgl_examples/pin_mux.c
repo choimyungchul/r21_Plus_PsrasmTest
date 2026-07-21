@@ -25,7 +25,8 @@ processor_version: 0.0.0
 #include "fsl_common.h"
 #include "fsl_iopctl.h"
 #include "pin_mux.h"
-
+#include "fsl_gpio.h"
+#include "board.h"
 /* FUNCTION ************************************************************************************************************
  *
  * Function Name : BOARD_InitBootPins
@@ -62,7 +63,7 @@ BOARD_InitMipiPanelPins:
 /* Function assigned for the Cortex-M33 (Core #0) */
 void BOARD_InitMipiPanelPins(void)
 {
-    const uint32_t port1_pin10_config = (/* Pin is configured as GPIO1_IO10 */
+    const uint32_t port7_pin22_config = (/* Pin is configured as GPIO1_IO10 */
                                          IOPCTL_PIO_FUNC0 |
                                          /* Disable pull-up / pull-down function */
                                          IOPCTL_PIO_PUPD_DI |
@@ -81,9 +82,9 @@ void BOARD_InitMipiPanelPins(void)
                                          /* Input function is not inverted */
                                          IOPCTL_PIO_INV_DI);
     /* PORT1 PIN10 (coords: T2) is configured as GPIO1_IO10 */
-    IOPCTL_PinMuxSet(1U, 10U, port1_pin10_config);
+    IOPCTL_PinMuxSet(7U, 22U, port7_pin22_config);
 
-    const uint32_t port1_pin14_config = (/* Pin is configured as GPIO1_IO14 */
+    const uint32_t port7_pin23_config = (/* Pin is configured as GPIO1_IO14 */
                                          IOPCTL_PIO_FUNC0 |
                                          /* Disable pull-up / pull-down function */
                                          IOPCTL_PIO_PUPD_DI |
@@ -102,7 +103,7 @@ void BOARD_InitMipiPanelPins(void)
                                          /* Input function is not inverted */
                                          IOPCTL_PIO_INV_DI);
     /* PORT1 PIN14 (coords: P3) is configured as GPIO1_IO14 */
-    IOPCTL_PinMuxSet(1U, 14U, port1_pin14_config);
+    IOPCTL_PinMuxSet(7U, 23U, port7_pin23_config);
 
     const uint32_t port3_pin4_config = (/* Pin is configured as GPIO3_IO4 */
                                         IOPCTL_PIO_FUNC0 |
@@ -145,6 +146,57 @@ void BOARD_InitMipiPanelPins(void)
                                         IOPCTL_PIO_INV_DI);
     /* PORT3 PIN5 (coords: K7) is configured as GPIO3_IO5 */
     IOPCTL_PinMuxSet(3U, 5U, port3_pin5_config);
+
+    const uint32_t port1_pin15_config = (/* Pin is configured as GPIO1_IO10 */
+                                         IOPCTL_PIO_FUNC0 |
+                                         /* Disable pull-up / pull-down function */
+                                         IOPCTL_PIO_PUPD_DI |
+                                         /* Enable pull-down function */
+                                         IOPCTL_PIO_PULLDOWN_EN |
+                                         /* Disable input buffer function */
+                                         IOPCTL_PIO_INBUF_DI |
+                                         /* Normal mode */
+                                         IOPCTL_PIO_SLEW_RATE_NORMAL |
+                                         /* Normal drive */
+                                         IOPCTL_PIO_FULLDRIVE_DI |
+                                         /* Analog mux is disabled */
+                                         IOPCTL_PIO_ANAMUX_DI |
+                                         /* Pseudo Output Drain is disabled */
+                                         IOPCTL_PIO_PSEDRAIN_DI |
+                                         /* Input function is not inverted */
+                                         IOPCTL_PIO_INV_DI);
+    /* PORT1 PIN10 (coords: T2) is configured as GPIO1_IO10 */
+    IOPCTL_PinMuxSet(1U, 15U, port1_pin15_config);
+
+    const uint32_t port1_pin16_config = (/* Pin is configured as GPIO1_IO10 */
+                                         IOPCTL_PIO_FUNC0 |
+                                         /* Disable pull-up / pull-down function */
+                                         IOPCTL_PIO_PUPD_DI |
+                                         /* Enable pull-down function */
+                                         IOPCTL_PIO_PULLDOWN_EN |
+                                         /* Disable input buffer function */
+                                         IOPCTL_PIO_INBUF_DI |
+                                         /* Normal mode */
+                                         IOPCTL_PIO_SLEW_RATE_NORMAL |
+                                         /* Normal drive */
+                                         IOPCTL_PIO_FULLDRIVE_DI |
+                                         /* Analog mux is disabled */
+                                         IOPCTL_PIO_ANAMUX_DI |
+                                         /* Pseudo Output Drain is disabled */
+                                         IOPCTL_PIO_PSEDRAIN_DI |
+                                         /* Input function is not inverted */
+                                         IOPCTL_PIO_INV_DI);
+    /* PORT1 PIN10 (coords: T2) is configured as GPIO1_IO10 */
+    IOPCTL_PinMuxSet(1U, 16U, port1_pin16_config);
+
+      
+    const gpio_pin_config_t outPinConfig = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic  = 1,
+    };
+
+    //GPIO_PinInit(DCDC_1P8V_EN_GPIO, DCDC_1P8V_EN_PIN, &outPinConfig);
+    //GPIO_PinInit(DCDC_3P3V_EN_GPIO, DCDC_3P3V_EN_PIN, &outPinConfig);
 }
 
 /* clang-format off */

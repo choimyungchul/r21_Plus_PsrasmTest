@@ -115,12 +115,22 @@
 #define BOARD_MIPI_TOUCH_INT_GPIO_IRQ         GPIO10_IRQn
 #define BOARD_MIPI_TOUCH_INT_GPIO_IRQ_Handler GPIO10_IRQHandler
 
+#define DCDC_1P8V_EN_GPIO GPIO1
+#define DCDC_1P8V_EN_PIN  15
+
+#define DCDC_3P3V_EN_GPIO GPIO1
+#define DCDC_3P3V_EN_PIN  16
+
 /* RST pin. */
-#define BOARD_MIPI_RST_GPIO GPIO4
-#define BOARD_MIPI_RST_PIN  12
+//#define BOARD_MIPI_RST_GPIO GPIO4
+//#define BOARD_MIPI_RST_PIN  12
+#define BOARD_MIPI_RST_GPIO GPIO7
+#define BOARD_MIPI_RST_PIN  22
 /* POWER pin .*/
-#define BOARD_MIPI_POWER_GPIO GPIO4
-#define BOARD_MIPI_POWER_PIN  13
+//#define BOARD_MIPI_POWER_GPIO GPIO4
+//#define BOARD_MIPI_POWER_PIN  13
+#define BOARD_MIPI_POWER_GPIO GPIO7
+#define BOARD_MIPI_POWER_PIN  23
 /* Backlight pin. */
 #define BOARD_MIPI_BL_GPIO GPIO1
 #define BOARD_MIPI_BL_PIN  14
@@ -283,6 +293,8 @@ void GlikeyClearConfig(GLIKEY_Type *base);
 void BOARD_ConfigMPU(void);
 void BOARD_Init16bitsPsRam(XSPI_Type *base);
 void BOARD_XspiClockSafeConfig(void);
+status_t XSPI2_PSRAM_Init(void);
+status_t XSPI2_PSRAM_MemoryTest(void);
 AT_QUICKACCESS_SECTION_CODE(void BOARD_SetXspiClock(XSPI_Type *base, uint32_t src, uint32_t divider));
 AT_QUICKACCESS_SECTION_CODE(void BOARD_DeinitXspi(XSPI_Type *base, CACHE64_CTRL_Type *cache));
 AT_QUICKACCESS_SECTION_CODE(void BOARD_InitXspi(XSPI_Type *base, CACHE64_CTRL_Type *cache));

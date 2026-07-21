@@ -145,6 +145,8 @@ void BOARD_InitMipiPanelPins(void)
                                         IOPCTL_PIO_INV_DI);
     /* PORT3 PIN5 (coords: K7) is configured as GPIO3_IO5 */
     IOPCTL_PinMuxSet(3U, 5U, port3_pin5_config);
+
+
 }
 
 /* clang-format off */

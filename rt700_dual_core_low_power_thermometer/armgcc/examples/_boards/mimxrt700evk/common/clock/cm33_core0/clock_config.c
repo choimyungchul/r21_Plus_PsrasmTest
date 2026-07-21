@@ -487,6 +487,8 @@ void BOARD_BootClockRUN(void)
     BOARD_BootClockRUN_InitClockModule(kClockModule_XTAL_OSC);
     BOARD_BootClockRUN_InitClockModule(kClockModule_LPOSC_1M_CLK_SEL);
     BOARD_BootClockRUN_InitClockModule(kClockModule_FRO0);
+    BOARD_BootClockHSRUN_InitClockModule(kClockModule_MAIN_PLL0);
+    BOARD_BootClockHSRUN_InitClockModule(kClockModule_AUDIO_PLL0);
     BOARD_BootClockRUN_InitClockModule(kClockModule_VDD2_COMP_BASE_CLK_SEL);
     BOARD_BootClockRUN_InitClockModule(kClockModule_VDD2_COM_BASE_CLK_SEL);
     BOARD_BootClockRUN_InitClockModule(kClockModule_VDD2_MEDIA_BASE_CLK_SEL);

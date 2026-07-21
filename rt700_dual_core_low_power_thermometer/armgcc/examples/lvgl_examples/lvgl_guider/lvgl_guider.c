@@ -332,10 +332,10 @@ static void AppTask(void *param)
         clock_labels_update();
         MU_SendMsgNonBlocking(APP_MU, CHN_MU_REG_NUM, 0);
         lv_display_refr_timer(NULL);
-        xSemaphoreTake(xMUBinarySemaphore, portMAX_DELAY);
-        UpdateDisplayedTemperature(*(int32_t*)&result);
-        APP_SetWakeupConfig();
-        xSemaphoreTake(xRTCBinarySemaphore, portMAX_DELAY);
+        //xSemaphoreTake(xMUBinarySemaphore, portMAX_DELAY);
+       // UpdateDisplayedTemperature(*(int32_t*)&result);
+        //APP_SetWakeupConfig();
+        //xSemaphoreTake(xRTCBinarySemaphore, portMAX_DELAY);
     }
 }
 

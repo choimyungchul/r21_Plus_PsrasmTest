@@ -689,6 +689,276 @@ void BOARD_Init16bitsPsRam(XSPI_Type *base)
     XSPI_SetDeviceConfig(base, &psRamDeviceConfig);
 }
 
+
+#if 1
+#define XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_READ   0U
+#define XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_WRITE  1U
+#define XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_READ     2U
+#define XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_WRITE    3U
+#define XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET        4U
+#define XSPI_PSRAM_CUSTOM_LUT_LENGTH            (5U * 5U)
+#define XSPI_PSRAM_FALLBACK_PAGE_SIZE_BYTES     2048UL
+#define XSPI_PSRAM_FALLBACK_DEVICE_SIZE_KB      0x8000UL
+#define XSPI_PSRAM_READ_DUMMY_CYCLES            4U /* Default LC=5 cycles. LUT operand is cycles - 1. */
+#define XSPI_PSRAM_WRITE_DUMMY_CYCLES           4U /* Default WLC=5 cycles. LUT operand is cycles - 1. */
+#define XSPI_PSRAM_PATTERN_CHUNK_WORDS          64U
+#define XSPI_PSRAM_TEST_WORDS                   64U
+#define XSPI_PSRAM_TEST_OFFSET                  0x00010000U
+#define XSPI_PSRAM_STRESS_BYTES                 (64U * 1024U)
+#define XSPI_PSRAM_TEST_SKIPPED                 ((status_t)0x5A5A0001U)
+
+static status_t XSPI2_PSRAM_SendIpCommand(uint8_t seqIndex,
+                                         xspi_command_type_t cmdType,
+                                         uint32_t deviceAddress,
+                                         uint32_t *data,
+                                         size_t dataSize)
+{
+    xspi_transfer_t transfer = {0};
+
+    transfer.deviceAddress  = deviceAddress;
+    transfer.cmdType        = cmdType;
+    transfer.seqIndex       = seqIndex;
+    transfer.targetGroup    = kXSPI_TargetGroup0;
+    transfer.data           = data;
+    transfer.dataSize       = dataSize;
+    transfer.lockArbitration = false;
+
+    return XSPI_TransferBlocking(XSPI2, &transfer);
+}
+
+status_t XSPI2_PSRAM_Init(void)
+{
+    xspi_config_t xspiConfig;
+    xspi_ahb_access_config_t ahbAccessConfig;
+    xspi_ip_access_config_t ipAccessConfig;
+    xspi_ahb_write_config_t ahbWriteConfig;
+    xspi_device_ddr_config_t ddrConfig;
+    xspi_device_config_t deviceConfig;
+    status_t status;
+    uint32_t xspiRootClkHz;
+    const uint32_t customLUT[XSPI_PSRAM_CUSTOM_LUT_LENGTH] = {
+        /* APS256XXN-OB9 Xccela linear burst read: 0x20. */
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_READ + 0U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0x20,
+                                                                     kXSPI_Command_DDR, kXSPI_8PAD, 0x00),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_READ + 1U] = XSPI_LUT_SEQ(kXSPI_Command_RADDR_DDR, kXSPI_8PAD, 0x20,
+                                                                     kXSPI_Command_DUMMY_SDR, kXSPI_8PAD, XSPI_PSRAM_READ_DUMMY_CYCLES),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_READ + 2U] = XSPI_LUT_SEQ(kXSPI_Command_READ_DDR, kXSPI_8PAD, 0x04,
+                                                                     kXSPI_Command_STOP, kXSPI_1PAD, 0x0),
+
+        /* APS256XXN-OB9 Xccela linear burst write: 0xA0. */
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_WRITE + 0U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0xA0,
+                                                                     kXSPI_Command_DDR, kXSPI_8PAD, 0x00),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_WRITE + 1U] = XSPI_LUT_SEQ(kXSPI_Command_RADDR_DDR, kXSPI_8PAD, 0x20,
+                                                                     kXSPI_Command_DUMMY_SDR, kXSPI_8PAD, XSPI_PSRAM_WRITE_DUMMY_CYCLES),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_WRITE + 2U] = XSPI_LUT_SEQ(kXSPI_Command_WRITE_DDR, kXSPI_8PAD, 0x04,
+                                                                     kXSPI_Command_STOP, kXSPI_1PAD, 0x0),
+
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_READ + 0U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0x40,
+                         	 	 	 	 	 	 	 	   	   	   	    kXSPI_Command_RADDR_DDR, kXSPI_8PAD, 0x18),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_READ + 1U] = XSPI_LUT_SEQ(kXSPI_Command_CADDR_DDR, kXSPI_8PAD, 0x10,
+                          kXSPI_Command_DUMMY_SDR, kXSPI_8PAD, XSPI_PSRAM_READ_DUMMY_CYCLES),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_READ + 2U] = XSPI_LUT_SEQ(kXSPI_Command_READ_DDR, kXSPI_8PAD, 0x08,
+                         	 	 	 	 	 	 	 	 	 	 	 	kXSPI_Command_STOP, kXSPI_1PAD, 0x0),
+
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_WRITE + 0U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0xC0,
+                         	 	 	 	 	 	 	 	 	 	 	 	 kXSPI_Command_RADDR_DDR, kXSPI_8PAD, 0x18),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_WRITE + 1U] = XSPI_LUT_SEQ(kXSPI_Command_CADDR_DDR, kXSPI_8PAD, 0x10,
+                         	 	 	 	 	 	 	 	 	 	 	 	 kXSPI_Command_WRITE_DDR, kXSPI_8PAD, 0x02),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_REG_WRITE + 2U] = XSPI_LUT_SEQ(kXSPI_Command_STOP, kXSPI_1PAD, 0x0,
+                         	 	 	 	 	 	 	 	 	 	 	 	 kXSPI_Command_STOP, kXSPI_1PAD, 0x0),
+
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET + 0U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0xFF,
+                                                                     kXSPI_Command_DDR, kXSPI_8PAD, 0x00),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET + 1U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0x00,
+                                                                     kXSPI_Command_DDR, kXSPI_8PAD, 0x00),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET + 2U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0x00,
+                                                                     kXSPI_Command_DDR, kXSPI_8PAD, 0x00),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET + 3U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0x00,
+                                                                     kXSPI_Command_DDR, kXSPI_8PAD, 0x00),
+        [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET + 4U] = XSPI_LUT_SEQ(kXSPI_Command_STOP, kXSPI_1PAD, 0x0,
+                                                                     kXSPI_Command_STOP, kXSPI_1PAD, 0x0),
+    };
+
+    POWER_DisablePD(kPDRUNCFG_APD_XSPI2);
+    POWER_DisablePD(kPDRUNCFG_PPD_XSPI2);
+    POWER_ApplyPD();
+
+    /* BOARD_InitPowerConfig() deinitializes MAIN_PLL, so XSPI2 must use a
+     * clock source that remains active during the application. */
+    CLOCK_AttachClk(kFRO0_DIV1_to_XSPI2);
+    CLOCK_SetClkDiv(kCLOCK_DivXspi2Clk, 2U); /* 192 MHz / 2 = 96 MHz. */
+
+    ahbWriteConfig.AWRSeqIndex          = XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_WRITE;
+    ahbWriteConfig.blockRead            = false;
+    ahbWriteConfig.blockSequenceWrite   = false;
+    ahbWriteConfig.pageWaitTimeoutValue = 0UL;
+    ahbWriteConfig.policy               = kXSPI_SoftwareClearPPWFlag;
+
+    xspiConfig.ptrAhbAccessConfig = &ahbAccessConfig;
+    xspiConfig.ptrIpAccessConfig  = &ipAccessConfig;
+    XSPI_GetDefaultConfig(&xspiConfig);
+
+    xspiConfig.ptrAhbAccessConfig->ARDSeqIndex                 = XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_READ;
+    xspiConfig.ptrAhbAccessConfig->ahbErrorPayload.highPayload = 0x5A5A5A5AU;
+    xspiConfig.ptrAhbAccessConfig->ahbErrorPayload.lowPayload  = 0x5A5A5A5AU;
+    xspiConfig.ptrAhbAccessConfig->enableAHBBufferWriteFlush   = true;
+    xspiConfig.ptrAhbAccessConfig->enableAHBPrefetch           = false;
+    xspiConfig.ptrAhbAccessConfig->ahbSplitSize                = kXSPI_AhbSplitSize64b;
+    xspiConfig.ptrAhbAccessConfig->ptrAhbWriteConfig           = &ahbWriteConfig;
+
+    ddrConfig.ddrDataAlignedClk         = kXSPI_DDRDataAlignedWith2xInternalRefClk;
+    ddrConfig.enableByteSwapInOctalMode = false;
+    ddrConfig.enableDdr                 = true;
+
+    memset(&deviceConfig, 0, sizeof(deviceConfig));
+    xspiRootClkHz = CLOCK_GetFreq(kCLOCK_Xspi2Clk);
+    if (xspiRootClkHz == 0U)
+    {
+        return kStatus_Fail;
+    }
+    deviceConfig.xspiRootClk                                   = xspiRootClkHz;
+    deviceConfig.enableCknPad                                  = false;
+    deviceConfig.deviceInterface                               = kXSPI_StrandardExtendedSPI;
+    deviceConfig.interfaceSettings.strandardExtendedSPISettings.pageSize =
+        XSPI_PSRAM_FALLBACK_PAGE_SIZE_BYTES;
+    deviceConfig.CSHoldTime                      = 3U;
+    deviceConfig.CSSetupTime                     = 3U;
+    deviceConfig.sampleClkConfig.sampleClkSource = kXSPI_SampleClkFromExternalDQS;
+    /* APS256XXN asserts DQS before the first valid read data. Enable the
+     * controller latency compensation so the first byte is not discarded. */
+    deviceConfig.sampleClkConfig.enableDQSLatency = false;
+    deviceConfig.sampleClkConfig.dllConfig.dllMode = kXSPI_AutoUpdateMode;
+    deviceConfig.sampleClkConfig.dllConfig.useRefValue = true;
+    deviceConfig.sampleClkConfig.dllConfig.enableCdl8 = true;
+    deviceConfig.addrMode                     = kXSPI_DeviceByteAddressable;
+    /* The Xccela LUT sends the complete A3..A0 address through one 32-bit
+     * RADDR instruction.  Keep CAS at zero so XSPI does not strip low address
+     * bits for a separate CADDR phase. */
+    deviceConfig.columnAddrWidth              = 0U;
+    deviceConfig.enableCASInterleaving        = false;
+    deviceConfig.deviceSize[0]                = XSPI_PSRAM_FALLBACK_DEVICE_SIZE_KB;
+    deviceConfig.deviceSize[1]                = XSPI_PSRAM_FALLBACK_DEVICE_SIZE_KB;
+    deviceConfig.ptrDeviceRegInfo             = NULL;
+    deviceConfig.ptrDeviceDdrConfig           = &ddrConfig;
+
+    XSPI_Init(XSPI2, &xspiConfig);
+    status = XSPI_SetDeviceConfig(XSPI2, &deviceConfig);
+    if (status != kStatus_Success)
+    {
+        return status;
+    }
+
+    /* APS256XXN uses the DQS pin as active-high DM during writes.  The SDK
+     * clears DQS_OUT_EN for StandardExtendedSPI devices, which prevents AHB
+     * byte/halfword strobes from reaching the PSRAM. */
+    XSPI_EnableModule(XSPI2, false);
+    XSPI2->MCR |= XSPI_MCR_DQS_OUT_EN_MASK;
+    XSPI_EnableModule(XSPI2, true);
+
+    XSPI_UpdateLUT(XSPI2, 0U, customLUT, XSPI_PSRAM_CUSTOM_LUT_LENGTH);
+
+    /* The device requires at least 150 us for power-up self-initialization
+     * before Global Reset, then at least 2 us before the next command. */
+    SDK_DelayAtLeastUs(150U, SystemCoreClock);
+    status = XSPI2_PSRAM_SendIpCommand(XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET, kXSPI_Command, XSPI2_AMBA_BASE, NULL, 0U);
+    if (status != kStatus_Success)
+    {
+        return status;
+    }
+
+    SDK_DelayAtLeastUs(10U, SystemCoreClock);
+    XSPI_ClearAhbBuffer(XSPI2);
+    XSPI_ClearTxBuffer(XSPI2);
+    XSPI_ClearRxBuffer(XSPI2);
+
+    /* Frame-buffer consumers such as LCDIF/GPU access PSRAM as non-CPU AHB
+     * masters. Route buffer 0-2 away from CPU-specific master IDs so those
+     * masters can use the all-master AHB buffer. */
+    BOARD_ReConfigXspiAhbBuffer(XSPI2);
+
+    return kStatus_Success;
+}
+
+status_t XSPI2_PSRAM_MemoryTest(void)
+{
+    volatile uint32_t *testAddr = (volatile uint32_t *)(XSPI2_AMBA_BASE + XSPI_PSRAM_TEST_OFFSET);
+    uint32_t backup[XSPI_PSRAM_TEST_WORDS];
+    uint32_t expected;
+    uint32_t actual;
+
+    for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
+    {
+        backup[i] = testAddr[i];
+    }
+
+    for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
+    {
+        testAddr[i] = 0xA5A50000UL ^ (i * 0x01010101UL);
+    }
+    __DSB();
+    XSPI_ClearAhbBuffer(XSPI2);
+
+    for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
+    {
+        expected = 0xA5A50000UL ^ (i * 0x01010101UL);
+        actual   = testAddr[i];
+        if (actual != expected)
+        {
+            PRINTF("XSPI2 PSRAM test FAIL phase=pattern index=%u addr=0x%08X expected=0x%08X actual=0x%08X backup=0x%08X\r\n",
+                   (unsigned int)i,
+                   (unsigned int)&testAddr[i],
+                   (unsigned int)expected,
+                   (unsigned int)actual,
+                   (unsigned int)backup[i]);
+            for (uint32_t j = 0U; j < XSPI_PSRAM_TEST_WORDS; j++)
+            {
+                testAddr[j] = backup[j];
+            }
+            __DSB();
+            XSPI_ClearAhbBuffer(XSPI2);
+            return kStatus_Fail;
+        }
+    }
+
+    for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
+    {
+        testAddr[i] = ~backup[i];
+    }
+    __DSB();
+    XSPI_ClearAhbBuffer(XSPI2);
+
+    for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
+    {
+        if (testAddr[i] != ~backup[i])
+        {
+            PRINTF("XSPI2 PSRAM test FAIL phase=invert index=%u addr=0x%08X expected=0x%08X actual=0x%08X backup=0x%08X\r\n",
+                   (unsigned int)i,
+                   (unsigned int)&testAddr[i],
+                   (unsigned int)(~backup[i]),
+                   (unsigned int)testAddr[i],
+                   (unsigned int)backup[i]);
+            for (uint32_t j = 0U; j < XSPI_PSRAM_TEST_WORDS; j++)
+            {
+                testAddr[j] = backup[j];
+            }
+            __DSB();
+            XSPI_ClearAhbBuffer(XSPI2);
+            return kStatus_Fail;
+        }
+    }
+
+    for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
+    {
+        testAddr[i] = backup[i];
+    }
+    __DSB();
+    XSPI_ClearAhbBuffer(XSPI2);
+
+    return kStatus_Success;
+}
+#endif
+
+
 inline static void i2c_release_bus_delay(void)
 {
     SDK_DelayAtLeastUs(10U, SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY);

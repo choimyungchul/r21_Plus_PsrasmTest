@@ -1271,8 +1271,36 @@ static void BOARD_InitLcdif(void)
     NVIC_EnableIRQ(DEMO_DBI_LCDIF_IRQn);
 }
 
+static void BOARD_ConfigureCo5300PsramLcdifMaster(void)
+{
+    xspi_ahbBuffer_config_t lcdifBufferConfig = {
+        .bufferSize            = (2U * 1024U) / 8U,
+        .enaPri.enablePriority = false,
+        .masterId              = 0x1DU,
+    };
+    xspi_ahbBuffer_config_t unusedBufferConfig = {
+        .bufferSize            = 0U,
+        .enaPri.enablePriority = false,
+        .masterId              = 0xFFU,
+    };
+    xspi_ahbBuffer_config_t sharedBufferConfig = {
+        .bufferSize             = (2U * 1024U) / 8U,
+        .enaPri.enableAllMaster = true,
+        .masterId               = 0U,
+    };
+
+    if (XSPI_SetAhbBufferConfig(XSPI2, &lcdifBufferConfig, &unusedBufferConfig,
+                                &unusedBufferConfig, &sharedBufferConfig) != kStatus_Success)
+    {
+        assert(false);
+    }
+    NIC_MEDIA1->ASIB[7].READ_QOS = NIC_READ_QOS_READ_QOS(1U);
+}
+
 status_t BOARD_PrepareDisplayController(void)
 {
+    BOARD_ConfigureCo5300PsramLcdifMaster();
+
     /* 1. Initialize LCDIF and MIPI-DSI. */
     /* Initialize clock, power and reset. */
     BOARD_InitMipiDsiClock();

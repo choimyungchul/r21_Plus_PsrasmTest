@@ -14,6 +14,7 @@
 #include "mcmgr.h"
 #include "fsl_cache.h"
 #include "FreeRTOS.h"
+#include "fsl_debug_console.h"
 /*${header:end}*/
 
 /*${function:start}*/
@@ -51,13 +52,29 @@ void  BOARD_MIPI_TOUCH_INT_GPIO_IRQ_Handler(void)
 
 void BOARD_InitHardware(void)
 {
+    status_t psramStatus;
     BOARD_ConfigMPU();
     BOARD_InitAHBSC();
     BOARD_InitBootPins();
+    BOARD_InitPsRamPins_Xspi2();
     BOARD_InitPMICPins();
     BOARD_InitUserSWPins();
+        
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
+    psramStatus = XSPI2_PSRAM_Init();
+
+    #if 0
+    if (psramStatus == kStatus_Success)
+    {
+        psramStatus = XSPI2_PSRAM_MemoryTest();
+        PRINTF("XSPI2 PSRAM memory test %s\r\n", (psramStatus == kStatus_Success) ? "PASS" : "FAIL");
+    }
+    else
+    {
+        PRINTF("XSPI2 PSRAM init FAIL: %ld\r\n", (long)psramStatus);
+    }
+    #endif
 
 #if (DEMO_PANEL_TFT_PROTO_5 == DEMO_PANEL)
 #if (SSD1963_DRIVEN_BY == SSD1963_DRIVEN_BY_FLEXIO)

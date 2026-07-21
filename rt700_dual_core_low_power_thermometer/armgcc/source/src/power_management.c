@@ -295,18 +295,21 @@ void BOARD_DisableUnusedClocks(void)
     CLOCK_DisableClock(kCLOCK_Iopctl1);
     CLOCK_DisableClock(kCLOCK_Glikey1);
     // CLOCK_DisableClock(kCLOCK_LPI2c15);
-    CLOCK_DisableClock(kCLOCK_MediaAccessRamArbiter1);
-    CLOCK_DisableClock(kCLOCK_Axi0);
+    /* Keep the Media AXI path used by CPU/LCDIF accesses to XSPI2 PSRAM. */
+    // CLOCK_DisableClock(kCLOCK_MediaAccessRamArbiter1);
+    // CLOCK_DisableClock(kCLOCK_Axi0);
     // CLOCK_DisableClock(kCLOCK_Gpu);
     // CLOCK_DisableClock(kCLOCK_MipiDsiCtrl);
     CLOCK_DisableClock(kCLOCK_LPSpi16);
     CLOCK_DisableClock(kCLOCK_LPSpi14);
-    CLOCK_DisableClock(kCLOCK_Xspi2);
+    /* XSPI2 supplies the live LVGL frame buffers. Keep its functional clock. */
+    // CLOCK_DisableClock(kCLOCK_Xspi2);
     CLOCK_DisableClock(kCLOCK_Mmu2);
     CLOCK_DisableClock(kCLOCK_Glikey5);
     CLOCK_DisableClock(kCLOCK_Flexio);
     // CLOCK_DisableClock(kCLOCK_Lcdif);
-    CLOCK_DisableClock(kCLOCK_Syscon4);
+    /* XSPI2 and LCDIF reside in the SYSCON4/media domain. */
+    // CLOCK_DisableClock(kCLOCK_Syscon4);
     CLOCK_DisableClock(kCLOCK_JpgDecoder);
     CLOCK_DisableClock(kCLOCK_PngDecoder);
     CLOCK_DisableClock(kCLOCK_Ezhv);
@@ -342,10 +345,10 @@ void BOARD_DisableUnusedModules(void)
     POWER_EnablePD(kPDRUNCFG_PD_FRO1);
     // POWER_EnablePD(kPDRUNCFG_PD_FRO2);
     // POWER_EnablePD(kPDRUNCFG_PD_LPOSC);
-    POWER_EnablePD(kPDRUNCFG_PD_PLLANA);
-    POWER_EnablePD(kPDRUNCFG_PD_PLLLDO);
-    POWER_EnablePD(kPDRUNCFG_PD_AUDPLLANA);
-    POWER_EnablePD(kPDRUNCFG_PD_AUDPLLLDO);
+    //POWER_EnablePD(kPDRUNCFG_PD_PLLANA);
+    //POWER_EnablePD(kPDRUNCFG_PD_PLLLDO);
+    //POWER_EnablePD(kPDRUNCFG_PD_AUDPLLANA);
+    //POWER_EnablePD(kPDRUNCFG_PD_AUDPLLLDO);
     POWER_EnablePD(kPDRUNCFG_PD_ADC0);
     // POWER_EnablePD(kPDRUNCFG_GATE_FRO0);
     POWER_EnablePD(kPDRUNCFG_GATE_FRO2);
@@ -461,7 +464,8 @@ void BOARD_DisableUnusedModules(void)
     POWER_EnablePD(kPDRUNCFG_APD_NPU);
     // POWER_EnablePD(kPDRUNCFG_APD_XSPI0);
     POWER_EnablePD(kPDRUNCFG_APD_XSPI1);
-    POWER_EnablePD(kPDRUNCFG_APD_XSPI2);
+    /* XSPI2 PSRAM is used after boot by CPU and LCDIF. */
+    // POWER_EnablePD(kPDRUNCFG_APD_XSPI2);
     // POWER_EnablePD(kPDRUNCFG_APD_LCDIF);
     POWER_EnablePD(kPDRUNCFG_APD_OCOTP);
     POWER_EnablePD(kPDRUNCFG_PPD_SDHC0_SRAM);
@@ -483,8 +487,8 @@ void BOARD_DisableUnusedModules(void)
     POWER_EnablePD(kPDRUNCFG_PPD_EZHV_TCM);
     POWER_EnablePD(kPDRUNCFG_PPD_NPU);
     // POWER_EnablePD(kPDRUNCFG_PPD_XSPI0);
-    POWER_EnablePD(kPDRUNCFG_PPD_XSPI1);
-    POWER_EnablePD(kPDRUNCFG_PPD_XSPI2);
+    //POWER_EnablePD(kPDRUNCFG_PPD_XSPI1);
+    //POWER_EnablePD(kPDRUNCFG_PPD_XSPI2);
     // POWER_EnablePD(kPDRUNCFG_PPD_LCDIF);
     POWER_EnablePD(kPDRUNCFG_PPD_OCOTP);
 }

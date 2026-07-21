@@ -212,10 +212,12 @@ static uint8_t XSPI_GetPPWBFromPageSize(uint32_t pageSize)
         case 2048UL:
         {
             ppwbValue = 11U;
+            break;
         }
         case 4096UL:
         {
             ppwbValue = 12U;
+            break;
         }
         default:
         {

@@ -290,7 +290,7 @@ void lv_port_disp_init(void)
 
 static void DEMO_BufferSwitchOffCallback(void *param, void *switchOffBuffer)
 {
-    BOARD_StopMIPIClock();
+    /* Keep DSI/LCDIF clocks active while the display is in use. */
 
 #if DEMO_DISPLAY_USE_PARTIAL_REFRESH
     lv_display_t *disp_drv = (lv_display_t *)param;
@@ -386,7 +386,6 @@ static void DEMO_FlushDisplay(lv_display_t *disp_drv, const lv_area_t *area, uin
     if (first_flush == true)
     {
         lv_area_copy(&damaged, area);
-        BOARD_StartMIPIClock();
     }
     else
     {
@@ -403,6 +402,9 @@ static void DEMO_FlushDisplay(lv_display_t *disp_drv, const lv_area_t *area, uin
 #else
         (void)xSemaphoreTake(s_transferDone, 0);
 #endif
+
+        __DSB();
+        XSPI_ClearAhbBuffer(XSPI2);
 
         first_flush = true;
 

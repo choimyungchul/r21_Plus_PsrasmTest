@@ -272,10 +272,8 @@
 /*
  * Place frame buffer in on-board PSRAM.
  */
-//#define DEMO_BUFFER0_ADDR 0x60000000U
-//#define DEMO_BUFFER1_ADDR 0x60200000U
-#define DEMO_BUFFER0_ADDR 0x20200000U
-#define DEMO_BUFFER1_ADDR 0x20280000U
+#define DEMO_BUFFER0_ADDR 0x60000000U
+#define DEMO_BUFFER1_ADDR 0x60200000U
 
 /* Definitions for the frame buffer. */
 /* 1 is enough, use 2 could render background buffer while display the foreground buffer. */
