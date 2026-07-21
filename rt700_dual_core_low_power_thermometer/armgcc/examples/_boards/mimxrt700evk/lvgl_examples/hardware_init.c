@@ -62,12 +62,26 @@ void BOARD_InitHardware(void)
         
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
-    psramStatus = XSPI2_PSRAM_Init();
+    psramStatus = XSPI_PSRAM_Init(XSPI1);
 
-    #if 0
+    #if 1
     if (psramStatus == kStatus_Success)
     {
-        psramStatus = XSPI2_PSRAM_MemoryTest();
+        psramStatus = XSPI_PSRAM_MemoryTest(XSPI1);
+        PRINTF("XSPI1 PSRAM memory test %s\r\n", (psramStatus == kStatus_Success) ? "PASS" : "FAIL");
+    }
+    else
+    {
+        PRINTF("XSPI1 PSRAM init FAIL: %ld\r\n", (long)psramStatus);
+    }
+    #endif
+
+    psramStatus = XSPI_PSRAM_Init(XSPI2);
+
+    #if 1
+    if (psramStatus == kStatus_Success)
+    {
+        psramStatus = XSPI_PSRAM_MemoryTest(XSPI2);
         PRINTF("XSPI2 PSRAM memory test %s\r\n", (psramStatus == kStatus_Success) ? "PASS" : "FAIL");
     }
     else

@@ -707,7 +707,8 @@ void BOARD_Init16bitsPsRam(XSPI_Type *base)
 #define XSPI_PSRAM_STRESS_BYTES                 (64U * 1024U)
 #define XSPI_PSRAM_TEST_SKIPPED                 ((status_t)0x5A5A0001U)
 
-static status_t XSPI2_PSRAM_SendIpCommand(uint8_t seqIndex,
+static status_t XSPI2_PSRAM_SendIpCommand(XSPI_Type *base,
+                                         uint8_t seqIndex,
                                          xspi_command_type_t cmdType,
                                          uint32_t deviceAddress,
                                          uint32_t *data,
@@ -723,10 +724,10 @@ static status_t XSPI2_PSRAM_SendIpCommand(uint8_t seqIndex,
     transfer.dataSize       = dataSize;
     transfer.lockArbitration = false;
 
-    return XSPI_TransferBlocking(XSPI2, &transfer);
+    return XSPI_TransferBlocking(base, &transfer);
 }
 
-status_t XSPI2_PSRAM_Init(void)
+status_t XSPI_PSRAM_Init(XSPI_Type *base)
 {
     xspi_config_t xspiConfig;
     xspi_ahb_access_config_t ahbAccessConfig;
@@ -736,6 +737,7 @@ status_t XSPI2_PSRAM_Init(void)
     xspi_device_config_t deviceConfig;
     status_t status;
     uint32_t xspiRootClkHz;
+    uint32_t xspiAmbaBase;
     const uint32_t customLUT[XSPI_PSRAM_CUSTOM_LUT_LENGTH] = {
         /* APS256XXN-OB9 Xccela linear burst read: 0x20. */
         [5U * XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_READ + 0U] = XSPI_LUT_SEQ(kXSPI_Command_DDR, kXSPI_8PAD, 0x20,
@@ -779,14 +781,30 @@ status_t XSPI2_PSRAM_Init(void)
                                                                      kXSPI_Command_STOP, kXSPI_1PAD, 0x0),
     };
 
-    POWER_DisablePD(kPDRUNCFG_APD_XSPI2);
-    POWER_DisablePD(kPDRUNCFG_PPD_XSPI2);
-    POWER_ApplyPD();
-
-    /* BOARD_InitPowerConfig() deinitializes MAIN_PLL, so XSPI2 must use a
-     * clock source that remains active during the application. */
-    CLOCK_AttachClk(kFRO0_DIV1_to_XSPI2);
-    CLOCK_SetClkDiv(kCLOCK_DivXspi2Clk, 2U); /* 192 MHz / 2 = 96 MHz. */
+    if (base == XSPI1)
+    {
+        POWER_DisablePD(kPDRUNCFG_APD_XSPI1);
+        POWER_DisablePD(kPDRUNCFG_PPD_XSPI1);
+        POWER_ApplyPD();
+        CLOCK_AttachClk(kFRO0_DIV1_to_XSPI1);
+        CLOCK_SetClkDiv(kCLOCK_DivXspi1Clk, 2U); /* 192 MHz / 2 = 96 MHz. */
+        xspiRootClkHz = CLOCK_GetFreq(kCLOCK_Xspi1Clk);
+        xspiAmbaBase  = XSPI1_AMBA_BASE;
+    }
+    else if (base == XSPI2)
+    {
+        POWER_DisablePD(kPDRUNCFG_APD_XSPI2);
+        POWER_DisablePD(kPDRUNCFG_PPD_XSPI2);
+        POWER_ApplyPD();
+        CLOCK_AttachClk(kFRO0_DIV1_to_XSPI2);
+        CLOCK_SetClkDiv(kCLOCK_DivXspi2Clk, 2U); /* 192 MHz / 2 = 96 MHz. */
+        xspiRootClkHz = CLOCK_GetFreq(kCLOCK_Xspi2Clk);
+        xspiAmbaBase  = XSPI2_AMBA_BASE;
+    }
+    else
+    {
+        return kStatus_InvalidArgument;
+    }
 
     ahbWriteConfig.AWRSeqIndex          = XSPI_PSRAM_CMD_LUT_SEQ_IDX_BURST_WRITE;
     ahbWriteConfig.blockRead            = false;
@@ -811,7 +829,6 @@ status_t XSPI2_PSRAM_Init(void)
     ddrConfig.enableDdr                 = true;
 
     memset(&deviceConfig, 0, sizeof(deviceConfig));
-    xspiRootClkHz = CLOCK_GetFreq(kCLOCK_Xspi2Clk);
     if (xspiRootClkHz == 0U)
     {
         return kStatus_Fail;
@@ -841,8 +858,8 @@ status_t XSPI2_PSRAM_Init(void)
     deviceConfig.ptrDeviceRegInfo             = NULL;
     deviceConfig.ptrDeviceDdrConfig           = &ddrConfig;
 
-    XSPI_Init(XSPI2, &xspiConfig);
-    status = XSPI_SetDeviceConfig(XSPI2, &deviceConfig);
+    XSPI_Init(base, &xspiConfig);
+    status = XSPI_SetDeviceConfig(base, &deviceConfig);
     if (status != kStatus_Success)
     {
         return status;
@@ -851,40 +868,58 @@ status_t XSPI2_PSRAM_Init(void)
     /* APS256XXN uses the DQS pin as active-high DM during writes.  The SDK
      * clears DQS_OUT_EN for StandardExtendedSPI devices, which prevents AHB
      * byte/halfword strobes from reaching the PSRAM. */
-    XSPI_EnableModule(XSPI2, false);
-    XSPI2->MCR |= XSPI_MCR_DQS_OUT_EN_MASK;
-    XSPI_EnableModule(XSPI2, true);
+    XSPI_EnableModule(base, false);
+    base->MCR |= XSPI_MCR_DQS_OUT_EN_MASK;
+    XSPI_EnableModule(base, true);
 
-    XSPI_UpdateLUT(XSPI2, 0U, customLUT, XSPI_PSRAM_CUSTOM_LUT_LENGTH);
+    XSPI_UpdateLUT(base, 0U, customLUT, XSPI_PSRAM_CUSTOM_LUT_LENGTH);
 
     /* The device requires at least 150 us for power-up self-initialization
      * before Global Reset, then at least 2 us before the next command. */
     SDK_DelayAtLeastUs(150U, SystemCoreClock);
-    status = XSPI2_PSRAM_SendIpCommand(XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET, kXSPI_Command, XSPI2_AMBA_BASE, NULL, 0U);
+    status = XSPI2_PSRAM_SendIpCommand(base, XSPI_PSRAM_CMD_LUT_SEQ_IDX_RESET, kXSPI_Command, xspiAmbaBase, NULL, 0U);
     if (status != kStatus_Success)
     {
         return status;
     }
 
     SDK_DelayAtLeastUs(10U, SystemCoreClock);
-    XSPI_ClearAhbBuffer(XSPI2);
-    XSPI_ClearTxBuffer(XSPI2);
-    XSPI_ClearRxBuffer(XSPI2);
+    XSPI_ClearAhbBuffer(base);
+    XSPI_ClearTxBuffer(base);
+    XSPI_ClearRxBuffer(base);
 
     /* Frame-buffer consumers such as LCDIF/GPU access PSRAM as non-CPU AHB
      * masters. Route buffer 0-2 away from CPU-specific master IDs so those
      * masters can use the all-master AHB buffer. */
-    BOARD_ReConfigXspiAhbBuffer(XSPI2);
+    BOARD_ReConfigXspiAhbBuffer(base);
 
     return kStatus_Success;
 }
 
-status_t XSPI2_PSRAM_MemoryTest(void)
+status_t XSPI_PSRAM_MemoryTest(XSPI_Type *base)
 {
-    volatile uint32_t *testAddr = (volatile uint32_t *)(XSPI2_AMBA_BASE + XSPI_PSRAM_TEST_OFFSET);
+    uint32_t xspiAmbaBase;
+    uint32_t xspiInstance;
     uint32_t backup[XSPI_PSRAM_TEST_WORDS];
     uint32_t expected;
     uint32_t actual;
+
+    if (base == XSPI1)
+    {
+        xspiAmbaBase = XSPI1_AMBA_BASE;
+        xspiInstance = 1U;
+    }
+    else if (base == XSPI2)
+    {
+        xspiAmbaBase = XSPI2_AMBA_BASE;
+        xspiInstance = 2U;
+    }
+    else
+    {
+        return kStatus_InvalidArgument;
+    }
+
+    volatile uint32_t *testAddr = (volatile uint32_t *)(xspiAmbaBase + XSPI_PSRAM_TEST_OFFSET);
 
     for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
     {
@@ -896,7 +931,7 @@ status_t XSPI2_PSRAM_MemoryTest(void)
         testAddr[i] = 0xA5A50000UL ^ (i * 0x01010101UL);
     }
     __DSB();
-    XSPI_ClearAhbBuffer(XSPI2);
+    XSPI_ClearAhbBuffer(base);
 
     for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
     {
@@ -904,7 +939,8 @@ status_t XSPI2_PSRAM_MemoryTest(void)
         actual   = testAddr[i];
         if (actual != expected)
         {
-            PRINTF("XSPI2 PSRAM test FAIL phase=pattern index=%u addr=0x%08X expected=0x%08X actual=0x%08X backup=0x%08X\r\n",
+            PRINTF("XSPI%u PSRAM test FAIL phase=pattern index=%u addr=0x%08X expected=0x%08X actual=0x%08X backup=0x%08X\r\n",
+                   (unsigned int)xspiInstance,
                    (unsigned int)i,
                    (unsigned int)&testAddr[i],
                    (unsigned int)expected,
@@ -915,7 +951,7 @@ status_t XSPI2_PSRAM_MemoryTest(void)
                 testAddr[j] = backup[j];
             }
             __DSB();
-            XSPI_ClearAhbBuffer(XSPI2);
+            XSPI_ClearAhbBuffer(base);
             return kStatus_Fail;
         }
     }
@@ -925,13 +961,14 @@ status_t XSPI2_PSRAM_MemoryTest(void)
         testAddr[i] = ~backup[i];
     }
     __DSB();
-    XSPI_ClearAhbBuffer(XSPI2);
+    XSPI_ClearAhbBuffer(base);
 
     for (uint32_t i = 0U; i < XSPI_PSRAM_TEST_WORDS; i++)
     {
         if (testAddr[i] != ~backup[i])
         {
-            PRINTF("XSPI2 PSRAM test FAIL phase=invert index=%u addr=0x%08X expected=0x%08X actual=0x%08X backup=0x%08X\r\n",
+            PRINTF("XSPI%u PSRAM test FAIL phase=invert index=%u addr=0x%08X expected=0x%08X actual=0x%08X backup=0x%08X\r\n",
+                   (unsigned int)xspiInstance,
                    (unsigned int)i,
                    (unsigned int)&testAddr[i],
                    (unsigned int)(~backup[i]),
@@ -942,7 +979,7 @@ status_t XSPI2_PSRAM_MemoryTest(void)
                 testAddr[j] = backup[j];
             }
             __DSB();
-            XSPI_ClearAhbBuffer(XSPI2);
+            XSPI_ClearAhbBuffer(base);
             return kStatus_Fail;
         }
     }
@@ -952,7 +989,7 @@ status_t XSPI2_PSRAM_MemoryTest(void)
         testAddr[i] = backup[i];
     }
     __DSB();
-    XSPI_ClearAhbBuffer(XSPI2);
+    XSPI_ClearAhbBuffer(base);
 
     return kStatus_Success;
 }
