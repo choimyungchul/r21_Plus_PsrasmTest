@@ -142,6 +142,7 @@ void BOARD_InitLcdDBIPanelPins(void); /* Function assigned for the Cortex-M33 (C
  */
 void BOARD_InitMipiTouchPanelPins(void); /* Function assigned for the Cortex-M33 (Core #0) */
 void BOARD_InitI2c8(void);
+void BOARD_InitPsRamPins_Xspi1(void);
 void BOARD_InitPsRamPins_Xspi2(void);
 void BOARD_InitPMICPins(void);
 void BOARD_InitUserSWPins(void);
